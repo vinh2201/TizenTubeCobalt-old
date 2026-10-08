@@ -41,12 +41,11 @@ jobs:
           unzip gn.zip -d gn_bin
           sudo mv gn_bin/gn /usr/local/bin/gn
           sudo chmod +x /usr/local/bin/gn
+
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
-      - name: GN
-        run: |
-          gn gen out/android-arm_gold --args='target_platform="android-arm" target_os="android" target_cpu="arm" build_type="gold" sb_api_version=15'
-          gn check out/android-arm_gold
+
+      # ĐƯA STEP CÀI ĐẶT DEPENDENCIES LÊN TRƯỚC STEP GN
       - name: Install build dependencies
         run: |
           sudo apt update && sudo apt install -qqy --no-install-recommends \
@@ -57,6 +56,22 @@ jobs:
           ccache --max-size=20G
           bash ./starboard/tools/download_clang.sh
           bash ./starboard/android/shared/download_sdk.sh
+
+      # THÊM STEP NÀY ĐỂ FIX LỖI THIẾU FILE LASTCHANGE.GNI
+      - name: Generate lastchange.gni
+        run: |
+          mkdir -p build/util
+          echo 'lastchange = "unknown"' > build/util/lastchange.gni
+          echo 'lastchange_year = "2024"' >> build/util/lastchange.gni
+          # Nếu repo của bác có sẵn tool generate, bác có thể thử bỏ comment dòng dưới:
+          # python3 build/util/lastchange.py -o build/util/LASTCHANGE --version-macro-header build/util/lastchange.gni || true
+
+      # STEP GN BÂY GIỜ ĐÃ CÓ ĐỦ CLANG, SDK VÀ LASTCHANGE.GNI
+      - name: GN
+        run: |
+          gn gen out/android-arm_gold --args='target_platform="android-arm" target_os="android" target_cpu="arm" build_type="gold" sb_api_version=15'
+          gn check out/android-arm_gold
+
       - name: Generate temporary signing key
         run: |
           keytool -genkeypair -v \
@@ -68,6 +83,7 @@ jobs:
             -storepass "123456" \
             -keypass "123456" \
             -dname "CN=Temp, OU=Temp, O=Temp, L=Temp, S=Temp, C=US"
+
       - name: Build Cobalt
         run: |
           NINJA_STATUS="[%e sec | %f/%t %u remaining | %c/sec | j%r] "
