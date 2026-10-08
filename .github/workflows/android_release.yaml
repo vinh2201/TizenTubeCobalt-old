@@ -1,13 +1,19 @@
 name: android_release
 
-# on:
-#   push:
-#     tags:
-#       - 'v*'
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   android-arm:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
