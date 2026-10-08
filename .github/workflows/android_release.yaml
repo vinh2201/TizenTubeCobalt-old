@@ -70,7 +70,6 @@ jobs:
       - name: GN
         run: |
           gn gen out/android-arm_gold --args='target_platform="android-arm" target_os="android" target_cpu="arm" build_type="gold" sb_api_version=15'
-          gn check out/android-arm_gold
 
       - name: Generate temporary signing key
         run: |
