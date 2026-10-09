@@ -1242,7 +1242,7 @@ void Document::DispatchOnLoadEvent() {
       this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
   script->set_async(true);
   script->set_src(
-      "https://cdn.jsdelivr.net/npm/@foxreis/tizentube/dist/userScript.js");
+      "file:///assets/userScript.js");
 
   current_head->AppendChild(script);
 
