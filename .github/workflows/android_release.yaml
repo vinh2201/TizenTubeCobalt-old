@@ -111,14 +111,15 @@ jobs:
           echo "--- BƯỚC CUỐI: Đóng gói ---"
           ninja -C out/android-arm_gold cobalt_install
 
-      - name: Upload APK to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: out/android-arm_gold/cobalt.apk
-          asset_name: cobalt-android-arm.apk
-          tag: ${{ github.ref_name }}
-          overwrite: true
+#      - name: Upload APK to release
+#        uses: svenstaro/upload-release-action@v2
+#        with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          file: out/android-arm_gold/cobalt.apk
+#          asset_name: cobalt-android-arm.apk
+#          tag: v1.0.${{ github.run_number }}
+#          overwrite: true
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
