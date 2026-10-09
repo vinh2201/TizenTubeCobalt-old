@@ -26,15 +26,16 @@ jobs:
             /root/.gradle/wrapper
       - name: Set up Cloud SDK
         uses: isarkis/setup-gcloud@40dce7857b354839efac498d3632050f568090b6
+
       - name: Set Android env vars
         run: |
           export ANDROID_HOME="$GITHUB_WORKSPACE/Android"
           mkdir -p "$ANDROID_HOME"
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          # Unset ANDROID_SDK_ROOT to avoid SDK conflicts
-          unset ANDROID_SDK_ROOT
-          echo "ANDROID_SDK_ROOT=" >> $GITHUB_ENV
+          # FIX Ở ĐÂY: Cho cả ANDROID_SDK_ROOT trỏ cùng vào thư mục Android luôn
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
           PROJECT_NAME=$(gcloud config get-value project)
+
       - name: Install GN
         run: |
           wget https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/latest -O gn.zip
