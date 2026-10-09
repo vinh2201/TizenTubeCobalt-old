@@ -51,8 +51,8 @@ jobs:
           sudo apt update && sudo apt install -qqy --no-install-recommends \
             bison clang libasound2-dev libgles2-mesa-dev libglib2.0-dev \
             libxcomposite-dev libxi-dev libxrender-dev nasm ninja-build \
-            python3-venv ccache gcc-multilib \
-            g++-multilib libc6-dev-i386
+            python3-venv python-is-python3 ccache gcc-multilib \
+            g++-multilib libc6-dev-i386 protobuf-compiler
           ccache --max-size=20G
           bash ./starboard/tools/download_clang.sh
           bash ./starboard/android/shared/download_sdk.sh
