@@ -1249,13 +1249,14 @@ void Document::DispatchOnLoadEvent() {
       file_path = file_path.Append("web").Append("userScript.js");
 
       std::string script_content;
-      // ReadFileToString của Cobalt sẽ thông qua Starboard để đọc file từ APK assets
+      // ReadFileToString sẽ đọc file trực tiếp từ assets của APK
       if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
         scoped_refptr<HTMLScriptElement> script =
             this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
         
-        // Bơm mã JS trực tiếp dưới dạng Inline Text để vượt rào CSP
-        script->set_text(script_content);
+        // FIX LỖI: Tạo Text Node chứa nội dung mã JS và append vào thẻ <script>
+        script->AppendChild(this->CreateTextNode(script_content));
+
         current_head->AppendChild(script);
       } else {
         DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
