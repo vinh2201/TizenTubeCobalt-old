@@ -1234,17 +1234,30 @@ void Document::OnRootElementUnableToProvideOffsetDimensions() {
 void Document::DispatchOnLoadEvent() {
   TRACE_EVENT0("cobalt::dom", "Document::DispatchOnLoadEvent()");
 
-
-  // Inject TizenTube.
+  // Inject TizenTube userScript
   scoped_refptr<HTMLHeadElement> current_head = this->head();
 
-  scoped_refptr<HTMLScriptElement> script =
-      this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
-  script->set_async(true);
-  script->set_src(
-      "file:///assets/web/userScript.js");
+  if (current_head) {
+    char path_buf[kSbFileMaxPath];
+    // kSbSystemPathContentDirectory trên Android tự động trỏ vào thư mục assets của APK
+    if (SbSystemGetPath(kSbSystemPathContentDirectory, path_buf, kSbFileMaxPath)) {
+      base::FilePath file_path(path_buf);
+      file_path = file_path.Append("web").Append("userScript.js");
 
-  current_head->AppendChild(script);
+      std::string script_content;
+      // ReadFileToString của Cobalt sẽ thông qua Starboard để đọc file từ APK assets
+      if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
+        scoped_refptr<HTMLScriptElement> script =
+            this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
+        
+        // Bơm mã JS trực tiếp dưới dạng Inline Text để vượt rào CSP
+        script->set_text(script_content);
+        current_head->AppendChild(script);
+      } else {
+        DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
+      }
+    }
+  }
 
   if (HasBrowsingContext()) {
     // Update the current timeline sample time and then update computed styles
