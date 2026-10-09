@@ -1243,20 +1243,38 @@ void Document::DispatchOnLoadEvent() {
 
   if (current_head) {
     char path_buf[kSbFileMaxPath];
-    // kSbSystemPathContentDirectory trên Android tự động trỏ vào thư mục assets của APK
     if (SbSystemGetPath(kSbSystemPathContentDirectory, path_buf, kSbFileMaxPath)) {
       base::FilePath file_path(path_buf);
-      file_path = file_path.Append("web").Append("userScript.js");
+      file_path = file_path.Append("web").Append("userScript.js"); //[cite: 7]
 
       std::string script_content;
-      // ReadFileToString sẽ đọc file trực tiếp từ assets của APK
       if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
         scoped_refptr<HTMLScriptElement> script =
             this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
         
-        // FIX LỖI: Tạo Text Node chứa nội dung mã JS và append vào thẻ <script>
-        script->AppendChild(this->CreateTextNode(script_content));
+        // --- BƯỚC QUAN TRỌNG: LẤY NONCE CỦA YOUTUBE ĐỂ VƯỢT CSP ---
+        std::string csp_nonce = "";
+        scoped_refptr<HTMLCollection> scripts = this->GetElementsByTagName("script");
+        if (scripts) {
+          for (uint32_t i = 0; i < scripts->length(); ++i) {
+            scoped_refptr<Element> node = scripts->Item(i);
+            if (node && node->HasAttribute("nonce")) {
+              auto attr = node->GetAttribute("nonce");
+              if (attr) { 
+                csp_nonce = *attr;
+                break; // Tìm thấy nonce hợp lệ thì dừng
+              }
+            }
+          }
+        }
 
+        // Gán 'thẻ thông hành' cho userScript của bác
+        if (!csp_nonce.empty()) {
+          script->SetAttribute("nonce", csp_nonce);
+        }
+        // --------------------------------------------------------
+
+        script->AppendChild(this->CreateTextNode(script_content));
         current_head->AppendChild(script);
       } else {
         DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
