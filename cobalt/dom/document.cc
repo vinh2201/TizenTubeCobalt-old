@@ -1242,7 +1242,7 @@ void Document::DispatchOnLoadEvent() {
       this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
   script->set_async(true);
   script->set_src(
-      "file:///assets/userScript.js");
+      "file:///assets/web/userScript.js");
 
   current_head->AppendChild(script);
 
