@@ -74,15 +74,19 @@ jobs:
 
       - name: Generate temporary signing key
         run: |
+          # Xóa file cũ nếu có để tránh bị kẹt file cũ
+          rm -f $HOME/.android/debug.keystore || true
+          
+          # Tạo chìa khóa chuẩn với alias là androiddebugkey và pass là android
           keytool -genkeypair -v \
             -keystore $HOME/.android/debug.keystore \
-            -alias allowedonly \
+            -alias androiddebugkey \
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
-            -storepass "123456" \
-            -keypass "123456" \
-            -dname "CN=Temp, OU=Temp, O=Temp, L=Temp, S=Temp, C=US"
+            -storepass "android" \
+            -keypass "android" \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Build Cobalt
         run: |
