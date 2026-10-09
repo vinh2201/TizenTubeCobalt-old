@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write
       packages: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
@@ -86,7 +86,11 @@ jobs:
       - name: Build Cobalt
         run: |
           NINJA_STATUS="[%e sec | %f/%t %u remaining | %c/sec | j%r] "
+          # 1. Build target chính trước (đảm bảo sinh đủ file .h và .pbzero.h)
+          ninja -C out/android-arm_gold cobalt
+          # 2. Sau đó mới đóng gói/install
           ninja -C out/android-arm_gold cobalt_install
+
       - name: Upload APK to release
         uses: svenstaro/upload-release-action@v2
         with:
