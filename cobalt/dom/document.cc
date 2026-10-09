@@ -65,6 +65,10 @@
 #include "cobalt/web/dom_exception.h"
 #include "cobalt/web/message_event.h"
 
+#include "base/files/file_util.h"
+#include "starboard/configuration_constants.h"
+#include "starboard/system.h"
+
 using cobalt::cssom::ViewportSize;
 
 namespace cobalt {
