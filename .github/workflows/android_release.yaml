@@ -85,6 +85,8 @@ jobs:
 
       - name: Build Cobalt
         run: |
+          # 1. CẤP QUYỀN THỰC THI CHO GRADLEW (SỬA LỖI PERMISSION DENIED)
+          chmod +x starboard/android/apk/gradlew
           NINJA_STATUS="[%e sec | %f/%t %u remaining | %c/sec | j%r] "
           echo "--- BƯỚC ĐỆM 1: Ép sinh các file Perfetto Protobuf trước ---"
           # Thử ép build trực tiếp target sinh file pbzero của Perfetto (nếu tồn tại)
