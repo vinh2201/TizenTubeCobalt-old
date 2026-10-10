@@ -1245,10 +1245,17 @@ void Document::DispatchOnLoadEvent() {
     char path_buf[kSbFileMaxPath];
     if (SbSystemGetPath(kSbSystemPathContentDirectory, path_buf, kSbFileMaxPath)) {
       base::FilePath file_path(path_buf);
-      file_path = file_path.Append("web").Append("userScript.js"); //[cite: 7]
+      file_path = file_path.Append("web").Append("userScript.js");
 
       std::string script_content;
       if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
+        
+        // --- ÁP DỤNG LOGIC CHỐNG CACHE BẰNG TIMESTAMP CỦA TÁC GIẢ GỐC ---
+        // Lấy thời gian hiện tại làm mã phiên bản chống cache cho script nội bộ
+        int64_t current_time = base::Time::Now().ToJavaTime() / 1000;
+        script_content = "/* TizenTube ver=" + std::to_string(current_time) + " */\n" + script_content;
+        // -----------------------------------------------------------------
+
         scoped_refptr<HTMLScriptElement> script =
             this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
         
@@ -1268,7 +1275,7 @@ void Document::DispatchOnLoadEvent() {
           }
         }
 
-        // Gán 'thẻ thông hành' cho userScript của bác
+        // Gán 'thẻ thông hành' cho userScript
         if (!csp_nonce.empty()) {
           script->SetAttribute("nonce", csp_nonce);
         }
@@ -1276,6 +1283,8 @@ void Document::DispatchOnLoadEvent() {
 
         script->AppendChild(this->CreateTextNode(script_content));
         current_head->AppendChild(script);
+        
+        DLOG(INFO) << "TizenTube: Successfully injected local userScript with anti-cache timestamp: " << current_time;
       } else {
         DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
       }
