@@ -1250,11 +1250,13 @@ void Document::DispatchOnLoadEvent() {
       std::string script_content;
       if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
         
-        // --- ÁP DỤNG LOGIC CHỐNG CACHE BẰNG TIMESTAMP CỦA TÁC GIẢ GỐC ---
-        // Lấy thời gian hiện tại làm mã phiên bản chống cache cho script nội bộ
+        // --- ÁP DỤNG LOGIC CHỐNG CACHE & TRÌ HOÃN THỰC THI (TRÁNH TREO GIAO DIỆN) ---
         int64_t current_time = base::Time::Now().ToJavaTime() / 1000;
-        script_content = "/* TizenTube ver=" + std::to_string(current_time) + " */\n" + script_content;
-        // -----------------------------------------------------------------
+        
+        // Bọc thêm setTimeout để nhường Main Thread cho YouTube TV render UI xong xuôi rồi mới chạy script
+        script_content = "/* TizenTube ver=" + std::to_string(current_time) + " */\n"
+                         "setTimeout(function() {\n" + script_content + "\n}, 50);\n";
+        // -------------------------------------------------------------------------
 
         scoped_refptr<HTMLScriptElement> script =
             this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
@@ -1284,7 +1286,7 @@ void Document::DispatchOnLoadEvent() {
         script->AppendChild(this->CreateTextNode(script_content));
         current_head->AppendChild(script);
         
-        DLOG(INFO) << "TizenTube: Successfully injected local userScript with anti-cache timestamp: " << current_time;
+        DLOG(INFO) << "TizenTube: Successfully injected local userScript safely with anti-cache timestamp: " << current_time;
       } else {
         DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
       }
