@@ -1287,7 +1287,6 @@ void Document::DispatchOnLoadEvent() {
       DLOG(INFO) << "TizenTube: Successfully injected local file script with anti-cache ver=" << current_time;
     } else {
       DLOG(ERROR) << "TizenTube: Khong the lay duong dan content directory.";
-      }
     }
   }
 
