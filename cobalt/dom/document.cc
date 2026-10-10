@@ -1245,39 +1245,48 @@ void Document::DispatchOnLoadEvent() {
     char path_buf[kSbFileMaxPath];
     if (SbSystemGetPath(kSbSystemPathContentDirectory, path_buf, kSbFileMaxPath)) {
       base::FilePath file_path(path_buf);
-      file_path = file_path.Append("web").Append("userScript.js"); //[cite: 7]
+      file_path = file_path.Append("web").Append("userScript.js");
 
-      std::string script_content;
-      if (base::ReadFileToString(file_path, &script_content) && !script_content.empty()) {
-        scoped_refptr<HTMLScriptElement> script =
-            this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
-        
-        // --- BƯỚC QUAN TRỌNG: LẤY NONCE CỦA YOUTUBE ĐỂ VƯỢT CSP ---
-        std::string csp_nonce = "";
-        scoped_refptr<HTMLCollection> scripts = this->GetElementsByTagName("script");
-        if (scripts) {
-          for (uint32_t i = 0; i < scripts->length(); ++i) {
-            scoped_refptr<Element> node = scripts->Item(i);
-            if (node && node->HasAttribute("nonce")) {
-              auto attr = node->GetAttribute("nonce");
-              if (attr) { 
-                csp_nonce = *attr;
-                break; // Tìm thấy nonce hợp lệ thì dừng
-              }
+      // --- BƯỚC 1: LẤY NONCE CỦA YOUTUBE ĐỂ VƯỢT CSP ---
+      std::string csp_nonce = "";
+      scoped_refptr<HTMLCollection> scripts = this->GetElementsByTagName("script");
+      if (scripts) {
+        for (uint32_t i = 0; i < scripts->length(); ++i) {
+          scoped_refptr<Element> node = scripts->Item(i);
+          if (node && node->HasAttribute("nonce")) {
+            auto attr = node->GetAttribute("nonce");
+            if (attr) { 
+              csp_nonce = *attr;
+              break; // Tìm thấy nonce hợp lệ thì dừng
             }
           }
         }
+      }
 
-        // Gán 'thẻ thông hành' cho userScript của bác
-        if (!csp_nonce.empty()) {
-          script->SetAttribute("nonce", csp_nonce);
-        }
-        // --------------------------------------------------------
+      // --- BƯỚC 2: TẠO THẺ SCRIPT DÙNG FILE URL LOCAL + CHỐNG CACHE ---
+      scoped_refptr<HTMLScriptElement> script =
+          this->CreateElement("script")->AsHTMLElement()->AsHTMLScriptElement();
+      
+      script->set_async(true);
 
-        script->AppendChild(this->CreateTextNode(script_content));
-        current_head->AppendChild(script);
-      } else {
-        DLOG(ERROR) << "TizenTube: Khong the doc file userScript.js tu " << file_path.value();
+      // Lấy timestamp hiện tại (giống cách của tác giả gốc) để ép không bị cache
+      int64_t current_time = base::Time::Now().ToJavaTime() / 1000;
+      
+      // Tạo đường dẫn file:// tuyệt đối kèm tham số chống cache ?ver=
+      std::string script_url = "file://" + file_path.value() + "?ver=" + std::to_string(current_time);
+      script->set_src(script_url);
+
+      // --- BƯỚC 3: GÁN 'THẺ THÔNG HÀNH' NONCE ĐỂ VƯỢT CSP ---
+      if (!csp_nonce.empty()) {
+        script->SetAttribute("nonce", csp_nonce);
+      }
+      // ----------------------------------------------------
+
+      current_head->AppendChild(script);
+      
+      DLOG(INFO) << "TizenTube: Successfully injected local file script with anti-cache ver=" << current_time;
+    } else {
+      DLOG(ERROR) << "TizenTube: Khong the lay duong dan content directory.";
       }
     }
   }
