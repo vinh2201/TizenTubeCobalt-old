@@ -1255,7 +1255,7 @@ void Document::DispatchOnLoadEvent() {
         
         // Bọc thêm setTimeout để nhường Main Thread cho YouTube TV render UI xong xuôi rồi mới chạy script
         script_content = "/* TizenTube ver=" + std::to_string(current_time) + " */\n"
-                         "setTimeout(function() {\n" + script_content + "\n}, 10);\n";
+                         "setTimeout(function() {\n" + script_content + "\n}, 18);\n";
         // -------------------------------------------------------------------------
 
         scoped_refptr<HTMLScriptElement> script =
